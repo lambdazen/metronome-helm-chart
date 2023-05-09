@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "metronome.fullname" . }}
+  labels:
+    {{- include "metronome.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "metronome.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "metronome.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "metronome.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /resource/index.html
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /resource/index.html
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: METRONOME_DB_HOST
+              value: {{ .Release.Name }}-cassandra.default.svc.cluster.local
+            - name: METRONOME_ES_HOST
+              value: {{ .Values.elasticsearch.clusterName }}-master.default.svc.cluster.local
+            - name: METRONOME_WEB_HOST
+              value: {{ .Release.Name }}-metronome.default.svc.cluster.local
+            - name: METRONOME_DAS_URL
+              value: {{ .Values.metronomeDASUrl }}
+            - name: METRONOME_INT_DAS_URL
+              value: {{ .Values.metronomeIntDASUrl }}
+            - name: METRONOME_APP_URL
+              value: {{ .Values.metronomeAppUrl }}
+            - name: METRONOME_INT_APP_URL
+              value: {{ .Values.metronomeIntAppUrl }}
+            - name: METRONOME_EVAL_URL
+              value: {{ .Values.metronomeEvalUrl }}
+            - name: METRONOME_INT_EVAL_URL
+              value: {{ .Values.metronomeIntEvalUrl }}
+            - name: METRONOME_WEB_URL
+              value: {{ .Values.metronomeWebUrl }}
+            - name: METRONOME_RESOURCE_URL
+              value: {{ .Values.metronomeResourceUrl }}
+            - name: METRONOME_RESOURCE_DEV_URL
+              value: {{ .Values.metronomeResourceDevUrl }}
+            - name: METRONOME_COOKIE_DOMAIN
+              value: {{ .Values.metronomeCookieDomain }}
+            - name: METRONOME_VIRTUAL_HOST
+              value: {{ .Values.metronomeVirtualHost }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

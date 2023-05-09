@@ -1,0 +1,155 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-db
+data:
+  "01-init.cql": |
+    create keyspace IF NOT EXISTS conceptjs with replication = {
+      'class' : 'SimpleStrategy',
+      'replication_factor' : 2
+    };
+
+    use conceptjs;
+
+    CREATE TABLE concepts (
+      curi text,
+      name text,
+      puri text,
+      flag text,
+      category text,
+      value text,
+      idxhash blob,
+      idxver int,
+      isLambda boolean,
+      update_at timestamp,
+      create_at timestamp,
+      create_by text,
+      update_by text,
+      del boolean,
+      active_script text,
+      sjson text,
+      digest text,
+      src_uuid text,
+      PRIMARY KEY(curi) ) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : 'ALL' };
+      
+    CREATE TABLE concept_children (
+      uri text,
+      curi text,
+      category text,
+      del boolean,
+      cname text,
+      PRIMARY KEY(uri,category,curi) ) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : 'ALL' };
+      
+    CREATE TABLE concept_history (
+      curi text,
+      name text,
+      update_time timeuuid,
+      update_uuri text,
+      puri text,
+      category text,
+      value text,
+      sjson text,
+      del boolean,
+      isLambda boolean,
+      PRIMARY KEY(curi,update_time)) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : 'NONE' } AND CLUSTERING ORDER BY (update_time DESC);
+      
+    CREATE TABLE concepts_release (
+      curi text,
+      cver int,
+      sjson text,
+      PRIMARY KEY((curi,cver)) ) WITH caching = { 'keys' : 'NONE', 'rows_per_partition' : 'NONE' };
+      
+    CREATE TABLE concept_children_release (
+      uri text,
+      ver int,
+      category text,
+      curi text,
+      cname text,
+      PRIMARY KEY((uri,ver),category,curi)) WITH caching = { 'keys' : 'NONE', 'rows_per_partition' : 'NONE' };
+      
+    CREATE TABLE repositories(
+      user text,
+      repoName text,
+      rcuri text,
+      default_perm int,
+      mgt_uri text,
+      PRIMARY KEY(user, repoName)) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : 'ALL' } AND CLUSTERING ORDER BY (repoName ASC);
+      
+    CREATE TABLE repositories_release(
+      user text,
+      repoName text,
+      ver int,
+      rcuri text,
+      default_perm int,
+      PRIMARY KEY((user, repoName), ver)) WITH caching = { 'keys' : 'NONE', 'rows_per_partition' : 'NONE' } AND CLUSTERING ORDER BY (ver DESC);
+      
+      
+    CREATE TABLE repo_user_permissions (
+      ruri text,
+      username text,
+      permission int,
+      PRIMARY KEY(ruri,username) ) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : 'ALL' };
+      
+    CREATE TABLE user_repo_permissions (
+      username text,
+      ruri text,
+      permission int,
+      PRIMARY KEY(username,ruri) ) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : 'ALL' };
+      
+    CREATE TABLE users (
+      username text,
+      uuri text,
+      passwd text,
+      reset_token text,
+      role text,
+      PRIMARY KEY(username) ) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : 'ALL' };
+      
+    CREATE TABLE email_user (
+      email text,
+      uuri text,
+      verify_token text,
+      isVerified boolean,
+      PRIMARY KEY(email) ) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : 'ALL' };
+      
+    CREATE TABLE user_binary_storage (
+      username text,
+      id uuid,
+      data blob,
+      PRIMARY KEY((username,id)) ) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : 'ALL' };
+      
+    CREATE TABLE concept_indexes (
+      curi text,
+      indexuri text,
+      hashcode blob,
+      idxver int,
+      PRIMARY KEY(curi,indexuri) ) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : 'ALL' };      
+      
+    CREATE TABLE user_recent_visit (
+      username text,
+      visit_date text,
+      ruri text,
+      PRIMARY KEY(username,visit_date,ruri) ) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : '1000' } AND CLUSTERING ORDER BY (visit_date DESC);
+      
+    CREATE TABLE slack_user (
+      suid text,
+      stoken text,
+      username text,
+      PRIMARY KEY(suid,stoken) ) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : 'ALL' };
+      
+    CREATE TABLE concept_stat (
+      curi text,
+      stat_time bigint,
+      stat_data bigint,
+      PRIMARY KEY(curi, stat_time) ) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : 'ALL' } AND CLUSTERING ORDER BY (stat_time ASC);
+      
+    CREATE TABLE concept_log (
+      curi text,
+      insert_time timeuuid,
+      log_data text,
+      PRIMARY KEY(curi,insert_time)) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : '1000' } AND CLUSTERING ORDER BY (insert_time DESC);
+      
+    CREATE TABLE concept_counter (
+      curi text,
+      counter_key text,
+      counter_value counter,
+      PRIMARY KEY(curi,counter_key)) WITH caching = { 'keys' : 'ALL', 'rows_per_partition' : 'ALL' };
