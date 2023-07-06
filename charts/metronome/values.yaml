@@ -4,11 +4,13 @@
 
 replicaCount: 1
 
+namespace: metronome-qa
+
 image:
   repository: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.0.2"
+  tag: "1.0.3"
 
 imagePullSecrets: 
   - name: aws-erc

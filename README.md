@@ -13,7 +13,7 @@ radus` to see the charts.
 
 To install the metronome chart:
 
-    helm install my-metronome radus/metronome
+    helm install my-metronome radus/metronom -n [target_namespace]
 
 To uninstall the chart:
 

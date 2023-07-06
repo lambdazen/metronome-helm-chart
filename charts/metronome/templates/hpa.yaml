@@ -3,6 +3,7 @@ apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "metronome.fullname" . }}
+  namespace: {{ .Values.namespace }}
   labels:
     {{- include "metronome.labels" . | nindent 4 }}
 spec:

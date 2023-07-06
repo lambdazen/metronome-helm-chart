@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "metronome.fullname" . }}
+  namespace: {{ .Values.namespace }}
   labels:
     {{- include "metronome.labels" . | nindent 4 }}
 spec:
@@ -49,11 +50,11 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
             - name: METRONOME_DB_HOST
-              value: {{ .Release.Name }}-cassandra.default.svc.cluster.local
+              value: {{ .Release.Name }}-cassandra.{{ .Values.namespace }}.svc.cluster.local
             - name: METRONOME_ES_HOST
-              value: {{ .Values.elasticsearch.clusterName }}-master.default.svc.cluster.local
+              value: {{ .Values.elasticsearch.clusterName }}-master.{{ .Values.namespace }}.svc.cluster.local
             - name: METRONOME_WEB_HOST
-              value: {{ .Release.Name }}-metronome.default.svc.cluster.local
+              value: {{ .Release.Name }}-metronome.{{ .Values.namespace }}.svc.cluster.local
             - name: METRONOME_DAS_URL
               value: {{ .Values.metronomeDASUrl }}
             - name: METRONOME_INT_DAS_URL
