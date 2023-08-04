@@ -10,7 +10,7 @@ image:
   repository: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.0.3"
+  tag: "1.0.3.20"
 
 imagePullSecrets: 
   - name: aws-erc
@@ -31,17 +31,20 @@ podAnnotations: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
-securityContext: {}
-  # capabilities:
-  #   drop:
+securityContext: 
+  capabilities:
+    add:
+      - NET_BIND_SERVICE
+  privileged: true
   #   - ALL
   # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1001
 
 service:
   type: NodePort
-  port: 80
+  port: 8080
 
 ingress:
   enabled: true
@@ -50,7 +53,7 @@ ingress:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
-    alb.ingress.kubernetes.io/healthcheck-port: '80'
+    alb.ingress.kubernetes.io/healthcheck-port: '8080'
     alb.ingress.kubernetes.io/healthcheck-path: /resource/index.html
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: '10'
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '8'
@@ -107,7 +110,7 @@ cassandra:
   image:
     registry: docker.io
     repository: bitnami/cassandra
-    tag: 3.11.13-debian-11-r3
+    tag: 4.1.2-debian-11-r16
 
   dbUser:
     user: cassandra
@@ -128,6 +131,16 @@ cassandra:
   replicaCount: 2
 
   initDBConfigMap: init-db
+
+  # podSecurityContext:
+  #  enabled: true
+  #  runAsUser: 0
+  #  runAsNonRoot: false
+
+  #containerSecurityContext:
+  #  enabled: true
+  #  runAsUser: 0
+  #  runAsNonRoot: false
 
 elasticsearch:
   clusterName: metronome
