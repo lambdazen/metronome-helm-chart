@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cassandra-config
+  namespace: {{ .Release.Namespace }}
+data:
+  cassandra.yaml: "batch_size_fail_threshold_in_kb: 10000"

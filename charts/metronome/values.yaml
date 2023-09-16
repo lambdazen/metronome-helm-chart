@@ -4,13 +4,11 @@
 
 replicaCount: 1
 
-namespace: metronome-qa
-
 image:
   repository: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.0.3.20"
+  tag: "1.0.4.11"
 
 imagePullSecrets: 
   - name: aws-erc
@@ -41,6 +39,7 @@ securityContext:
   runAsNonRoot: true
   runAsUser: 1000
   runAsGroup: 1001
+  #runAsUser: 0
 
 service:
   type: NodePort
@@ -114,7 +113,7 @@ cassandra:
 
   dbUser:
     user: cassandra
-    password: cassandra
+    password: tnc{SJH<Ba@46k=yDD
 
   cluster:
     name: metronome
@@ -149,11 +148,11 @@ elasticsearch:
   image: "registry1.dso.mil/ironbank/elastic/elasticsearch/elasticsearch"
   imageTag: "7.17.9"
   imagePullSecrets: 
-   - name: dsopcred
+   - name: dsopcrednew
 
   secret:
    enabled: true
-   password: "elastic"
+   password: ";lr6GbG%,Gau@@E3~="
 
   protocol: http
 
