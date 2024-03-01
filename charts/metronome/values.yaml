@@ -8,7 +8,7 @@ image:
   repository: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.0.4.18"
+  tag: "1.0.4.24"
 
 imagePullSecrets: 
   - name: aws-erc
@@ -104,6 +104,11 @@ metronomeResourceUrl: https://metronome-dha.radustech.io/
 metronomeResourceDevUrl: https://metronome-dha.radustech.io/
 metronomeCookieDomain: metronome-dha.radustech.io
 metronomeVirtualHost: metronome-dha.radustech.io
+metronomeEmailHost: smtp.gmail.com
+metronomeEmailPort: "465"
+metronomeEmailSecure: "true"
+metronomeEmailUser: ""
+metronomeEmailPass: ""
 
 cassandra:
   image:
@@ -161,6 +166,7 @@ elasticsearch:
       xpack.security.enabled: false
       xpack.security.http.ssl.enabled: false
       xpack.security.transport.ssl.enabled: false
+      xpack.security.audit.enabled: true
 
   extraEnvs:
     - name: xpack.security.enabled
@@ -169,3 +175,5 @@ elasticsearch:
       value: "false"
     - name: xpack.security.transport.ssl.enabled
       value: "false"
+    - name: xpack.security.audit.enabled
+      value: "true"

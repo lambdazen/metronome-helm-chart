@@ -81,6 +81,16 @@ spec:
               value: {{ .Values.cassandra.dbUser.user }}
             - name: METRONOME_DB_PASS
               value: {{ .Values.cassandra.dbUser.password }}
+            - name: METRONOME_EMAIL_HOST
+              value: {{ .Values.metronomeEmailHost }}
+            - name: METRONOME_EMAIL_PORT
+              value: {{ .Values.metronomeEmailPort | quote }}
+            - name: METRONOME_EMAIL_SECURE
+              value: {{ .Values.metronomeEmailSecure | quote }}
+            - name: METRONOME_EMAIL_USER
+              value: {{ .Values.metronomeEmailUser }}
+            - name: METRONOME_EMAIL_PASS
+              value: {{ .Values.metronomeEmailPass }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
