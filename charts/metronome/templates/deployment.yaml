@@ -91,6 +91,16 @@ spec:
               value: {{ .Values.metronomeEmailUser }}
             - name: METRONOME_EMAIL_PASS
               value: {{ .Values.metronomeEmailPass }}
+            - name: METRONOME_EMAIL_FROM
+              value: {{ .Values.metronomeEmailFrom }}
+            - name: METRONOME_AUTH_PROVIDER
+              value: {{ .Values.metronomeAuthProvider }}
+            - name: METRONOME_AUTH_PROVIDER_URL
+              value: {{ .Values.metronomeAuthProviderUrl }}
+            - name: METRONOME_AUTH_PROVIDER_REALM
+              value: {{ .Values.metronomeAuthProviderRealm }}
+            - name: METRONOME_AUTH_PROVIDER_CLIENT_ID
+              value: {{ .Values.metronomeAuthProviderClientId }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
