@@ -8,7 +8,7 @@ image:
   repository: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.2.2.2"
+  tag: "1.2.3.11"
 
 imagePullSecrets: 
   - name: aws-erc
@@ -115,6 +115,7 @@ metronomeAuthProvider: metronome
 metronomeAuthProviderUrl: https://auth.radustech.io
 metronomeAuthProviderRealm: metronome
 metronomeAuthProviderClientId: metronomedha
+metronomeAuthProviderClientSecret: 50daed13-fc5f-4a93-aafe-c30060706f96
 
 cassandra:
   image:
@@ -122,7 +123,7 @@ cassandra:
     repository: metronome-cassandra
     pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "1.0.4"
+    tag: "1.2.3.3"
 
   imagePullSecrets: 
     - name: aws-erc
@@ -174,7 +175,7 @@ elasticsearch:
   replicas: 2
 
   image: "147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome-elasticsearch"
-  imageTag: "1.2.2.3"
+  imageTag: "1.2.3.7"
   imagePullSecrets: 
     - name: aws-erc
 
@@ -194,8 +195,13 @@ elasticsearch:
       xpack.security.enabled: false
       xpack.security.http.ssl.enabled: false
       xpack.security.transport.ssl.enabled: false
-      xpack.security.audit.enabled: true
+      xpack.security.audit.enabled: false
+      xpack.ml.enabled: false
       http.port: 8888
+      network.host: 0.0.0.0
+      discovery.seed_hosts: ["metronome-master-0.metronome-master-headless.metronome-qa.svc.cluster.local","metronome-master-1.metronome-master-headless.metronome-qa.svc.cluster.local" ]
+      cluster.initial_master_nodes: ["metronome-master-0.metronome-master-headless.metronome-qa.svc.cluster.local","metronome-master-1.metronome-master-headless.metronome-qa.svc.cluster.local" ]
+
 
   extraEnvs:
     - name: xpack.security.enabled
@@ -205,4 +211,6 @@ elasticsearch:
     - name: xpack.security.transport.ssl.enabled
       value: "false"
     - name: xpack.security.audit.enabled
-      value: "true"
+      value: "false"
+    - name: xpack.ml.enabled
+      value: "false"
