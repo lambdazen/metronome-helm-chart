@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    meta.helm.sh/release-name: metronome-dha-qa-09162023
+    meta.helm.sh/release-namespace: metronome-qa
+  creationTimestamp: "2024-10-02T21:54:53Z"
+  labels:
+    app.kubernetes.io/instance: metronome-dha-qa-09162023
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: cassandra
+    helm.sh/chart: cassandra-9.2.3
+  name: metronome-dha-qa-09162023-cassandra-headless
+  namespace: metronome-qa
+  resourceVersion: "176700780"
+  uid: 12f8f346-7ca4-4198-ade2-dd2d4ffdd1b6
+spec:
+  clusterIP: None
+  clusterIPs:
+  - None
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: intra
+    port: 7000
+    protocol: TCP
+    targetPort: intra
+  - name: tls
+    port: 7001
+    protocol: TCP
+    targetPort: tls
+  - name: jmx
+    port: 7199
+    protocol: TCP
+    targetPort: jmx
+  - name: cql
+    port: 9042
+    protocol: TCP
+    targetPort: cql
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/instance: metronome-dha-qa-09162023
+    app.kubernetes.io/name: cassandra
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

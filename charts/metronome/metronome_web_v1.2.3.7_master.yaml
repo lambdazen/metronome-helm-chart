@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    meta.helm.sh/release-name: metronome-dha-qa-09162023
+    meta.helm.sh/release-namespace: metronome-qa
+  creationTimestamp: "2024-10-02T21:54:53Z"
+  labels:
+    app.kubernetes.io/instance: metronome-dha-qa-09162023
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: metronome
+    app.kubernetes.io/version: 1.2.2
+    helm.sh/chart: metronome-1.2.2
+  name: metronome-dha-qa-09162023
+  namespace: metronome-qa
+  resourceVersion: "176700789"
+  uid: 63cee0a4-0d6d-4038-927c-184b4a57e7ef
+spec:
+  clusterIP: 10.100.105.12
+  clusterIPs:
+  - 10.100.105.12
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: http
+    nodePort: 31712
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app.kubernetes.io/instance: metronome-dha-qa-09162023
+    app.kubernetes.io/name: metronome
+  sessionAffinity: None
+  type: NodePort
+status:
+  loadBalancer: {}

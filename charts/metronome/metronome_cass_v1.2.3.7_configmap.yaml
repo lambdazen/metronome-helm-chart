@@ -1,0 +1,15 @@
+apiVersion: v1
+data:
+  cassandra.yaml: 'batch_size_fail_threshold_in_kb: 10000'
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: metronome-dha-qa-09162023
+    meta.helm.sh/release-namespace: metronome-qa
+  creationTimestamp: "2024-10-02T21:54:52Z"
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: cassandra-config
+  namespace: metronome-qa
+  resourceVersion: "176700778"
+  uid: 3e56f66c-4d61-4919-b4ff-24271617f713

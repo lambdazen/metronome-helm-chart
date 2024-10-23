@@ -1,0 +1,320 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    configchecksum: eeb87e96a6035c9e4026f77669ff62915ddd736fd5392f155424dd27754f297
+  creationTimestamp: "2024-09-04T21:34:08Z"
+  generateName: metronome-master-
+  labels:
+    app: metronome-master
+    chart: elasticsearch
+    controller-revision-hash: metronome-master-649b4984f5
+    release: metronome-dha-qa-09162023
+    statefulset.kubernetes.io/pod-name: metronome-master-0
+  name: metronome-master-0
+  namespace: metronome-qa
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: StatefulSet
+    name: metronome-master
+    uid: 36039b24-fae5-4ad2-9fcc-33ce8539a421
+  resourceVersion: "166821124"
+  uid: 0a863e7b-04e6-4b5d-8ed3-456322cfed6c
+spec:
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - metronome-master
+        topologyKey: kubernetes.io/hostname
+  automountServiceAccountToken: true
+  containers:
+  - env:
+    - name: node.name
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.name
+    - name: cluster.initial_master_nodes
+      value: metronome-master-0,metronome-master-1,
+    - name: node.roles
+      value: master,data,data_content,data_hot,data_warm,data_cold,ingest,ml,remote_cluster_client,transform,
+    - name: discovery.seed_hosts
+      value: metronome-master-headless
+    - name: cluster.name
+      value: metronome
+    - name: network.host
+      value: 0.0.0.0
+    - name: ELASTIC_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: metronome-master-credentials
+    - name: xpack.security.enabled
+      value: "true"
+    - name: xpack.security.transport.ssl.enabled
+      value: "true"
+    - name: xpack.security.http.ssl.enabled
+      value: "true"
+    - name: xpack.security.transport.ssl.verification_mode
+      value: certificate
+    - name: xpack.security.transport.ssl.key
+      value: /usr/share/elasticsearch/config/certs/tls.key
+    - name: xpack.security.transport.ssl.certificate
+      value: /usr/share/elasticsearch/config/certs/tls.crt
+    - name: xpack.security.transport.ssl.certificate_authorities
+      value: /usr/share/elasticsearch/config/certs/ca.crt
+    - name: xpack.security.http.ssl.key
+      value: /usr/share/elasticsearch/config/certs/tls.key
+    - name: xpack.security.http.ssl.certificate
+      value: /usr/share/elasticsearch/config/certs/tls.crt
+    - name: xpack.security.http.ssl.certificate_authorities
+      value: /usr/share/elasticsearch/config/certs/ca.crt
+    - name: xpack.security.enabled
+      value: "false"
+    - name: xpack.security.http.ssl.enabled
+      value: "false"
+    - name: xpack.security.transport.ssl.enabled
+      value: "false"
+    - name: xpack.security.audit.enabled
+      value: "false"
+    - name: xpack.ml.enabled
+      value: "false"
+    image: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome-elasticsearch:1.2.3.7
+    imagePullPolicy: IfNotPresent
+    name: elasticsearch
+    ports:
+    - containerPort: 9200
+      name: http
+      protocol: TCP
+    - containerPort: 9300
+      name: transport
+      protocol: TCP
+    readinessProbe:
+      exec:
+        command:
+        - bash
+        - -c
+        - |
+          set -e
+
+          # Exit if ELASTIC_PASSWORD in unset
+          if [ -z "${ELASTIC_PASSWORD}" ]; then
+            echo "ELASTIC_PASSWORD variable is missing, exiting"
+            exit 1
+          fi
+
+          # If the node is starting up wait for the cluster to be ready (request params: "wait_for_status=green&timeout=1s" )
+          # Once it has started only check that the node itself is responding
+          START_FILE=/tmp/.es_start_file
+
+          # Disable nss cache to avoid filling dentry cache when calling curl
+          # This is required with Elasticsearch Docker using nss < 3.52
+          export NSS_SDB_USE_CACHE=no
+
+          http () {
+            local path="${1}"
+            local args="${2}"
+            set -- -XGET -s
+
+            if [ "$args" != "" ]; then
+              set -- "$@" $args
+            fi
+
+            set -- "$@" -u "elastic:${ELASTIC_PASSWORD}"
+
+            curl --output /dev/null -k "$@" "http://127.0.0.1:9200${path}"
+          }
+
+          if [ -f "${START_FILE}" ]; then
+            echo 'Elasticsearch is already running, lets check the node is healthy'
+            HTTP_CODE=$(http "/" "-w %{http_code}")
+            RC=$?
+            if [[ ${RC} -ne 0 ]]; then
+              echo "curl --output /dev/null -k -XGET -s -w '%{http_code}' \${BASIC_AUTH} http://127.0.0.1:9200/ failed with RC ${RC}"
+              exit ${RC}
+            fi
+            # ready if HTTP code 200, 503 is tolerable if ES version is 6.x
+            if [[ ${HTTP_CODE} == "200" ]]; then
+              exit 0
+            elif [[ ${HTTP_CODE} == "503" && "8" == "6" ]]; then
+              exit 0
+            else
+              echo "curl --output /dev/null -k -XGET -s -w '%{http_code}' \${BASIC_AUTH} http://127.0.0.1:9200/ failed with HTTP code ${HTTP_CODE}"
+              exit 1
+            fi
+
+          else
+            echo 'Waiting for elasticsearch cluster to become ready (request params: "wait_for_status=green&timeout=1s" )'
+            if http "/_cluster/health?wait_for_status=green&timeout=1s" "--fail" ; then
+              touch ${START_FILE}
+              exit 0
+            else
+              echo 'Cluster is not yet ready (request params: "wait_for_status=green&timeout=1s" )'
+              exit 1
+            fi
+          fi
+      failureThreshold: 3
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      successThreshold: 3
+      timeoutSeconds: 5
+    resources:
+      limits:
+        cpu: "1"
+        memory: 2Gi
+      requests:
+        cpu: "1"
+        memory: 2Gi
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      runAsNonRoot: true
+      runAsUser: 1000
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /usr/share/elasticsearch/data
+      name: metronome-master
+    - mountPath: /usr/share/elasticsearch/config/certs
+      name: elasticsearch-certs
+      readOnly: true
+    - mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+      name: esconfig
+      subPath: elasticsearch.yml
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-dfdrp
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  hostname: metronome-master-0
+  imagePullSecrets:
+  - name: aws-erc
+  initContainers:
+  - command:
+    - sysctl
+    - -w
+    - vm.max_map_count=262144
+    image: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome-elasticsearch:1.2.3.7
+    imagePullPolicy: IfNotPresent
+    name: configure-sysctl
+    resources: {}
+    securityContext:
+      privileged: true
+      runAsUser: 0
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-dfdrp
+      readOnly: true
+  nodeName: ip-192-168-155-12.us-gov-east-1.compute.internal
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    fsGroup: 1000
+    runAsUser: 1000
+  serviceAccount: default
+  serviceAccountName: default
+  subdomain: metronome-master-headless
+  terminationGracePeriodSeconds: 120
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: metronome-master
+    persistentVolumeClaim:
+      claimName: metronome-master-metronome-master-0
+  - configMap:
+      defaultMode: 420
+      name: metronome-master-config
+    name: esconfig
+  - name: elasticsearch-certs
+    secret:
+      defaultMode: 420
+      secretName: metronome-master-certs
+  - name: kube-api-access-dfdrp
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2024-09-04T21:34:19Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2024-09-04T21:35:38Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2024-09-04T21:35:38Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2024-09-04T21:34:09Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://a25c0c4dbeedad53a06661c2a3e863780d81280d807c8006bd8bb3510211d895
+    image: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome-elasticsearch:1.2.3.7
+    imageID: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome-elasticsearch@sha256:ceae17378423741e125b42a3734afbec607b699dd779812d0b328b9c2bf15605
+    lastState: {}
+    name: elasticsearch
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2024-09-04T21:34:19Z"
+  hostIP: 192.168.155.12
+  initContainerStatuses:
+  - containerID: containerd://e65153ba1cb22688537fab901004424243f0d595b95d77fa3baf648c93a1facb
+    image: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome-elasticsearch:1.2.3.7
+    imageID: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome-elasticsearch@sha256:ceae17378423741e125b42a3734afbec607b699dd779812d0b328b9c2bf15605
+    lastState: {}
+    name: configure-sysctl
+    ready: true
+    restartCount: 0
+    state:
+      terminated:
+        containerID: containerd://e65153ba1cb22688537fab901004424243f0d595b95d77fa3baf648c93a1facb
+        exitCode: 0
+        finishedAt: "2024-09-04T21:34:18Z"
+        reason: Completed
+        startedAt: "2024-09-04T21:34:18Z"
+  phase: Running
+  podIP: 192.168.142.43
+  podIPs:
+  - ip: 192.168.142.43
+  qosClass: Burstable
+  startTime: "2024-09-04T21:34:09Z"

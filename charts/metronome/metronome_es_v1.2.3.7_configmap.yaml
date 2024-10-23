@@ -1,0 +1,28 @@
+apiVersion: v1
+data:
+  elasticsearch.yml: |
+    xpack.security.enabled: false
+    xpack.security.http.ssl.enabled: false
+    xpack.security.transport.ssl.enabled: false
+    xpack.security.audit.enabled: false
+    xpack.ml.enabled: false
+    http.port: 8888
+    network.host: 0.0.0.0
+    discovery.seed_hosts: ["metronome-master-0.metronome-master-headless.metronome-qa.svc.cluster.local","metronome-master-1.metronome-master-headless.metronome-qa.svc.cluster.local" ]
+    cluster.initial_master_nodes: ["metronome-master-0.metronome-master-headless.metronome-qa.svc.cluster.local","metronome-master-1.metronome-master-headless.metronome-qa.svc.cluster.local" ]
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: metronome-dha-qa-09162023
+    meta.helm.sh/release-namespace: metronome-qa
+  creationTimestamp: "2024-09-04T21:34:08Z"
+  labels:
+    app: metronome-master
+    app.kubernetes.io/managed-by: Helm
+    chart: elasticsearch
+    heritage: Helm
+    release: metronome-dha-qa-09162023
+  name: metronome-master-config
+  namespace: metronome-qa
+  resourceVersion: "166820584"
+  uid: 85591e05-f52f-4d4f-8a01-5e70792f2a46

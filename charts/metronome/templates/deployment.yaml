@@ -102,7 +102,10 @@ spec:
             - name: METRONOME_AUTH_PROVIDER_CLIENT_ID
               value: {{ .Values.metronomeAuthProviderClientId }}
             - name: METRONOME_AUTH_PROVIDER_CLIENT_SECRET
-              value: {{ .Values.metronomeAuthProviderClientSecret }}
+              valueFrom:
+                secretKeyRef:
+                  name: rhsso-client-secret
+                  key: METRONOME_AUTH_PROVIDER_CLIENT_SECRET
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

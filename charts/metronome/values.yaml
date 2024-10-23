@@ -2,13 +2,13 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 3
+replicaCount: 1
 
 image:
   repository: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.2.3.11"
+  tag: "1.2.4.7"
 
 imagePullSecrets: 
   - name: aws-erc
@@ -77,8 +77,10 @@ ingress:
 resources: 
   requests:
     memory: "12Gi"
+    cpu: "1"
   limits: 
     memory: "12Gi"
+    cpu: "2"
 
 autoscaling:
   enabled: false
@@ -111,11 +113,10 @@ metronomeEmailSecure: "true"
 metronomeEmailUser: ""
 metronomeEmailPass: ""
 metronomeEmailFrom: ""
-metronomeAuthProvider: metronome
-metronomeAuthProviderUrl: https://auth.radustech.io
+metronomeAuthProvider: keycloak
+metronomeAuthProviderUrl: https://auth1.radustech.io/auth
 metronomeAuthProviderRealm: metronome
 metronomeAuthProviderClientId: metronomedha
-metronomeAuthProviderClientSecret: 50daed13-fc5f-4a93-aafe-c30060706f96
 
 cassandra:
   image:
@@ -123,7 +124,7 @@ cassandra:
     repository: metronome-cassandra
     pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "1.2.3.5"
+    tag: "1.2.4.0"
 
   imagePullSecrets: 
     - name: aws-erc
@@ -175,7 +176,7 @@ elasticsearch:
   replicas: 2
 
   image: "147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome-elasticsearch"
-  imageTag: "1.2.3.7"
+  imageTag: "1.2.3.8"
   imagePullSecrets: 
     - name: aws-erc
 
@@ -200,7 +201,7 @@ elasticsearch:
       http.port: 8888
       network.host: 0.0.0.0
       discovery.seed_hosts: ["metronome-master-0.metronome-master-headless.metronome-qa.svc.cluster.local","metronome-master-1.metronome-master-headless.metronome-qa.svc.cluster.local" ]
-      cluster.initial_master_nodes: ["metronome-master-0.metronome-master-headless.metronome-qa.svc.cluster.local","metronome-master-1.metronome-master-headless.metronome-qa.svc.cluster.local" ]
+      cluster.initial_master_nodes: ["metronome-master-0","metronome-master-1" ]
 
 
   extraEnvs:
