@@ -2,6 +2,23 @@ apiVersion: v1
 entries:
   metronome:
   - apiVersion: v2
+    appVersion: 1.2.5
+    created: "2025-02-14T19:53:15.961878595Z"
+    dependencies:
+    - name: cassandra
+      repository: https://charts.bitnami.com/bitnami
+      version: 9.2.3
+    - name: elasticsearch
+      repository: https://helm.elastic.co
+      version: 8.5.1
+    description: A Helm chart for Metronome
+    digest: 4b6daeb2d439a05809d9c187136e3ae5fff6e4c5b3cbde6b0730cdae30fa5a46
+    name: metronome
+    type: application
+    urls:
+    - https://github.com/lambdazen/metronome-helm-chart/releases/download/metronome-1.2.5/metronome-1.2.5.tgz
+    version: 1.2.5
+  - apiVersion: v2
     appVersion: 1.2.2
     created: "2024-05-19T21:21:01.565000233Z"
     dependencies:
@@ -222,4 +239,4 @@ entries:
     urls:
     - https://github.com/lambdazen/metronome-helm-chart/releases/download/metronome-1.0.0/metronome-1.0.0.tgz
     version: 1.0.0
-generated: "2024-05-19T21:21:01.565089179Z"
+generated: "2025-02-14T19:53:15.961996335Z"
