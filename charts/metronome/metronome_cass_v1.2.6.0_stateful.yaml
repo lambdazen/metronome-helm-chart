@@ -1,0 +1,201 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    meta.helm.sh/release-name: metronome-dha-qa-09162023
+    meta.helm.sh/release-namespace: metronome-qa
+  creationTimestamp: "2025-02-21T19:24:16Z"
+  generation: 1
+  labels:
+    app.kubernetes.io/instance: metronome-dha-qa-09162023
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: cassandra
+    helm.sh/chart: cassandra-9.2.3
+  name: metronome-dha-qa-09162023-cassandra
+  namespace: metronome-qa
+  resourceVersion: "226748869"
+  uid: 03010cb8-4fec-4a29-a21a-9c79a6a310eb
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: metronome-dha-qa-09162023
+      app.kubernetes.io/name: cassandra
+  serviceName: metronome-dha-qa-09162023-cassandra-headless
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/instance: metronome-dha-qa-09162023
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: cassandra
+        helm.sh/chart: cassandra-9.2.3
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: metronome-dha-qa-09162023
+                  app.kubernetes.io/name: cassandra
+              namespaces:
+              - metronome-qa
+              topologyKey: kubernetes.io/hostname
+            weight: 1
+      containers:
+      - command:
+        - bash
+        - -ec
+        - |
+          # Node 0 is the password seeder
+          if [[ $POD_NAME =~ (.*)-0$ ]]; then
+              echo "Setting node as password seeder"
+              export CASSANDRA_PASSWORD_SEEDER=yes
+          else
+              # Only node 0 will execute the startup initdb scripts
+              export CASSANDRA_IGNORE_INITDB_SCRIPTS=1
+          fi
+          /opt/bitnami/scripts/cassandra/entrypoint.sh /opt/bitnami/scripts/cassandra/run.sh
+        env:
+        - name: BITNAMI_DEBUG
+          value: "false"
+        - name: CASSANDRA_CLUSTER_NAME
+          value: metronome
+        - name: CASSANDRA_SEEDS
+          value: metronome-dha-qa-09162023-cassandra-0.metronome-dha-qa-09162023-cassandra-headless.metronome-qa.svc.cluster.local
+        - name: CASSANDRA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: cassandra-password
+              name: metronome-dha-qa-09162023-cassandra
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: CASSANDRA_USER
+          value: cassandra
+        - name: CASSANDRA_NUM_TOKENS
+          value: "256"
+        - name: CASSANDRA_DATACENTER
+          value: dc1
+        - name: CASSANDRA_ENDPOINT_SNITCH
+          value: SimpleSnitch
+        - name: CASSANDRA_KEYSTORE_LOCATION
+          value: /opt/bitnami/cassandra/certs/keystore
+        - name: CASSANDRA_TRUSTSTORE_LOCATION
+          value: /opt/bitnami/cassandra/certs/truststore
+        - name: CASSANDRA_RACK
+          value: rack1
+        - name: MAX_HEAP_SIZE
+          value: 4g
+        - name: HEAP_NEWSIZE
+          value: 800m
+        - name: CASSANDRA_TRANSPORT_PORT_NUMBER
+          value: "7000"
+        - name: CASSANDRA_JMX_PORT_NUMBER
+          value: "7199"
+        - name: CASSANDRA_CQL_PORT_NUMBER
+          value: "9042"
+        image: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome-cassandra:1.2.5.2
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -ec
+            - |
+              nodetool status
+          failureThreshold: 5
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 30
+        name: cassandra
+        ports:
+        - containerPort: 7000
+          name: intra
+          protocol: TCP
+        - containerPort: 7001
+          name: tls
+          protocol: TCP
+        - containerPort: 7199
+          name: jmx
+          protocol: TCP
+        - containerPort: 9042
+          name: cql
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -ec
+            - |
+              nodetool status | grep -E "^UN\\s+${POD_IP}"
+          failureThreshold: 5
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 30
+        resources: {}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /bitnami/cassandra
+          name: data
+        - mountPath: /docker-entrypoint-initdb.d/configmap
+          name: init-db-cm
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 1001
+      serviceAccount: metronome-dha-qa-09162023-cassandra
+      serviceAccountName: metronome-dha-qa-09162023-cassandra
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: init-db
+        name: init-db-cm
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/instance: metronome-dha-qa-09162023
+        app.kubernetes.io/name: cassandra
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 8Gi
+      volumeMode: Filesystem
+    status:
+      phase: Pending
+status:
+  availableReplicas: 2
+  collisionCount: 0
+  currentReplicas: 2
+  currentRevision: metronome-dha-qa-09162023-cassandra-6799796d49
+  observedGeneration: 1
+  readyReplicas: 2
+  replicas: 2
+  updateRevision: metronome-dha-qa-09162023-cassandra-6799796d49
+  updatedReplicas: 2
