@@ -1,11 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "metronome.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "metronome.labels" . | nindent 4 }}
 spec:
+  serviceName: metronome-discovery
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
@@ -34,9 +35,19 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: hazelcast-config-volume
+              mountPath: /usr/local/conceptjs/conf/hazelcast.xml
+              subPath: hazelcast.xml
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            - name: das
+              containerPort: 5701
+              protocol: TCP
+            - name: eval
+              containerPort: 5702
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -49,12 +60,18 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
+            - name: METRONOME_INIT_DB
+              value: {{.Values.metronomeInitDB | quote}}
+            - name: METRONOME_DEPLOYMENT_NAMESPACE
+              value: {{ .Release.Namespace }}
             - name: METRONOME_DB_HOST
               value: {{ .Release.Name }}-cassandra.{{ .Release.Namespace }}.svc.cluster.local
             - name: METRONOME_ES_HOST
               value: {{ .Values.elasticsearch.clusterName }}-master.{{ .Release.Namespace }}.svc.cluster.local
-            - name: METRONOME_WEB_HOST
-              value: {{ .Release.Name }}-metronome.{{ .Release.Namespace }}.svc.cluster.local
+            - name: METRONOME_WEB_HOST_1
+              value: {{ include "metronome.fullname" . }}-0.metronome-discovery.{{ .Release.Namespace }}.svc.cluster.local
+            - name: METRONOME_WEB_HOST_2
+              value: {{ include "metronome.fullname" . }}-1.metronome-discovery.{{ .Release.Namespace }}.svc.cluster.local
             - name: METRONOME_DAS_URL
               value: {{ .Values.metronomeDASUrl }}
             - name: METRONOME_INT_DAS_URL
@@ -106,6 +123,10 @@ spec:
                 secretKeyRef:
                   name: rhsso-client-secret
                   key: METRONOME_AUTH_PROVIDER_CLIENT_SECRET
+      volumes:
+        - name: hazelcast-config-volume
+          configMap:
+            name: hazelcast-config
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hazelcast-config
+data:
+  hazelcast.xml: |-
+{{ tpl (.Files.Get "files/hazelcast-config.xml.tpl") . | indent 4 }}

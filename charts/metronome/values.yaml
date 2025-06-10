@@ -2,13 +2,13 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 1
+replicaCount: 2
 
 image:
   repository: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.2.6.6"
+  tag: "1.2.7.4"
 
 imagePullSecrets: 
   - name: aws-erc
@@ -76,10 +76,10 @@ ingress:
 
 resources: 
   requests:
-    memory: "12Gi"
+    memory: "16Gi"
     cpu: "1"
   limits: 
-    memory: "12Gi"
+    memory: "16Gi"
     cpu: "2"
 
 autoscaling:
@@ -117,6 +117,7 @@ metronomeAuthProvider: keycloak
 metronomeAuthProviderUrl: https://auth1.radustech.io/auth
 metronomeAuthProviderRealm: metronome
 metronomeAuthProviderClientId: metronomedha
+metronomeInitDB: "false"
 
 cassandra:
   image:
@@ -124,7 +125,7 @@ cassandra:
     repository: metronome-cassandra
     pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "1.2.6.0"
+    tag: "1.2.7.0"
     pullSecrets:
       - name: aws-erc
 
@@ -179,7 +180,7 @@ elasticsearch:
   replicas: 2
 
   image: "147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome-elasticsearch"
-  imageTag: "1.2.6.2"
+  imageTag: "1.2.7.0"
   imagePullSecrets: 
     - name: aws-erc
 

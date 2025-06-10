@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: metronome-discovery
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "metronome.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - name: metronome-discovery-web-das
+      port: 5701
+      targetPort: 5701
+    - name: metronome-discovery-web-eval
+      port: 5702
+      targetPort: 5702
+  selector:
+    {{- include "metronome.selectorLabels" . | nindent 4 }}
