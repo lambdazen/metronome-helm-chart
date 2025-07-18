@@ -77,7 +77,7 @@ ingress:
 resources: 
   requests:
     memory: "12Gi"
-    cpu: "1"
+    cpu: "0.5"
   limits: 
     memory: "12Gi"
     cpu: "2"
@@ -92,8 +92,6 @@ autoscaling:
 nodeSelector: {}
 
 tolerations: []
-
-affinity: {}
 
 #Environment variables
 metronomeDASUrl: https://metronome-dha.radustech.io:8082
