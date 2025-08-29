@@ -8,7 +8,7 @@ image:
   repository: 147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.2.7.10"
+  tag: "1.2.7.14"
 
 imagePullSecrets: 
   - name: aws-erc
@@ -126,7 +126,7 @@ cassandra:
     repository: metronome-cassandra
     pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "1.2.7.3"
+    tag: "1.2.7.4"
     pullSecrets:
       - name: aws-erc
 
@@ -141,7 +141,10 @@ cassandra:
 
   dbUser:
     user: cassandra
-    password: tnc{SJH<Ba@46k=yDD
+    existingSecret: 
+      name: dbcredentials
+      keyMapping:
+        cassandra-password: dbPassword
 
   cluster:
     name: metronome
@@ -181,7 +184,7 @@ elasticsearch:
   replicas: 2
 
   image: "147376904629.dkr.ecr.us-gov-east-1.amazonaws.com/metronome-elasticsearch"
-  imageTag: "1.2.7.0"
+  imageTag: "1.2.7.1"
   imagePullSecrets: 
     - name: aws-erc
 

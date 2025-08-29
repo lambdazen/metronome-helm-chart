@@ -99,7 +99,10 @@ spec:
             - name: METRONOME_DB_USER
               value: {{ .Values.cassandra.dbUser.user }}
             - name: METRONOME_DB_PASS
-              value: {{ .Values.cassandra.dbUser.password }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.cassandra.dbUser.existingSecret.name }}
+                  key: {{ index .Values.cassandra.dbUser.existingSecret.keyMapping "cassandra-password" | quote }}
             - name: METRONOME_EMAIL_HOST
               value: {{ .Values.metronomeEmailHost }}
             - name: METRONOME_EMAIL_PORT
